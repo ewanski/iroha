@@ -20,11 +20,11 @@
 
 #include <boost/functional/hash.hpp>
 #include "interfaces/base/hashable.hpp"
+#include "interfaces/common_objects/signable_hash.hpp"
 #include "interfaces/common_objects/signature.hpp"
 #include "interfaces/common_objects/types.hpp"
 #include "utils/polymorphic_wrapper.hpp"
 #include "utils/string_builder.hpp"
-#include "interfaces/common_objects/signable_hash.hpp"
 
 namespace shared_model {
   namespace interface {
@@ -50,7 +50,6 @@ namespace shared_model {
     class Signable : public Hashable<Model> {
 #endif
      public:
-
       /**
        * @return attached signatures
        */
@@ -87,6 +86,29 @@ namespace shared_model {
         return *this == rhs and this->signatures() == rhs.signatures()
             and this->createdTime() == rhs.createdTime();
       }
+
+/**
+ * Provides hash from payload
+ * @return hash of payload
+ */
+#ifndef DISABLE_BACKWARD
+      virtual const typename Hashable<Model, OldModel>::HashType &hash()
+          const override {
+        if (Hashable<Model, OldModel>::hash_ == boost::none) {
+          Hashable<Model, OldModel>::hash_.emplace(
+              Hashable<Model, OldModel>::HashProviderType::makeHash(payload()));
+        }
+        return *Hashable<Model, OldModel>::hash_;
+      }
+#else
+      virtual const typename Hashable<Model>::HashType &hash() const override {
+        if (Hashable<Model>::hash_ == boost::none) {
+          Hashable<Model>::hash_.emplace(
+              Hashable<Model>::HashProviderType::makeHash(payload()));
+        }
+        return *Hashable<Model>::hash_;
+      }
+#endif
 
       // ------------------------| Primitive override |-------------------------
 

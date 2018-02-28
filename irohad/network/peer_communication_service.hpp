@@ -18,15 +18,17 @@
 #ifndef IROHA_PEER_COMMUNICATION_SERVICE_HPP
 #define IROHA_PEER_COMMUNICATION_SERVICE_HPP
 
-#include "model/block.hpp"
-#include "model/proposal.hpp"
+#include "interfaces/iroha_internal/block.hpp"
+#include "interfaces/iroha_internal/proposal.hpp"
 
 #include <rxcpp/rx.hpp>
 
 namespace iroha {
-  namespace network {
 
-    using Commit = rxcpp::observable<model::Block>;
+  using Commit =
+      rxcpp::observable<std::shared_ptr<shared_model::interface::Block>>;
+
+  namespace network {
 
     /**
      * Public API for notification about domain data
@@ -38,14 +40,17 @@ namespace iroha {
        * @param transaction - object for propagation
        */
       virtual void propagate_transaction(
-          std::shared_ptr<const model::Transaction> transaction) = 0;
+          std::shared_ptr<const shared_model::interface::Transaction>
+              transaction) = 0;
 
       /**
        * Event is triggered when proposal arrives from network.
        * @return observable with Proposals.
        * (List of Proposals)
        */
-      virtual rxcpp::observable<model::Proposal> on_proposal() = 0;
+      virtual rxcpp::observable<
+          std::shared_ptr<shared_model::interface::Proposal>>
+      on_proposal() = 0;
 
       /**
        * Event is triggered when commit block arrives.

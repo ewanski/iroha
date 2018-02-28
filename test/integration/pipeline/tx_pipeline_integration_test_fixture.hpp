@@ -21,6 +21,7 @@
 #include <algorithm>
 #include <atomic>
 
+#include "backend/protobuf/from_old_model.hpp"
 #include "crypto/keys_manager_impl.hpp"
 #include "cryptography/ed25519_sha3_impl/internal/sha3_hash.hpp"
 #include "datetime/time.hpp"
@@ -35,6 +36,9 @@ using namespace framework::test_subscriber;
 using namespace std::chrono_literals;
 using namespace iroha::model::generators;
 using iroha::model::Transaction;
+
+using ProposalType = shared_model::interface::Proposal;
+using BlockType = shared_model::interface::Block;
 
 class TxPipelineIntegrationTestFixture
     : public iroha::ametsuchi::AmetsuchiTest {
@@ -66,8 +70,9 @@ class TxPipelineIntegrationTestFixture
     ASSERT_EQ(num_blocks, proposals.size());
     // Update proposal timestamp and compare it
     for (auto i = 0u; i < proposals.size(); ++i) {
-      expected_proposals[i].created_time = proposals[i].created_time;
-      ASSERT_EQ(expected_proposals[i], proposals[i]);
+      expected_proposals[i].created_time = proposals[i]->created_time();
+      auto expected = shared_model::proto::from_old(expected_proposals[i]);
+      ASSERT_EQ(expected, *proposals[i]);
     }
 
     ASSERT_TRUE(commit_wrapper->validate());
@@ -76,14 +81,16 @@ class TxPipelineIntegrationTestFixture
     // Update block timestamp and related fields and compare it
     for (auto i = 0u; i < blocks.size(); ++i) {
       auto &expected_block = expected_blocks[i];
-      expected_block.created_ts = blocks[i].created_ts;
+      expected_block.created_ts = blocks[i]->createdTime();
       if (i != 0) {
         expected_block.prev_hash = expected_blocks[i - 1].hash;
       }
       expected_block.hash = iroha::hash(expected_block);
       expected_block.sigs = {};
       irohad->getCryptoProvider()->sign(expected_block);
-      ASSERT_EQ(expected_block, blocks[i]);
+      // compare old and new model object by their hash
+      ASSERT_EQ(iroha::hash(expected_block).to_hexstring(),
+                blocks[i]->hash().hex());
     }
   }
 
@@ -100,11 +107,12 @@ class TxPipelineIntegrationTestFixture
   std::condition_variable cv;
   std::mutex m;
 
-  std::vector<iroha::model::Proposal> proposals;
-  std::vector<iroha::model::Block> blocks;
+  std::vector<std::shared_ptr<ProposalType>> proposals;
+  std::vector<std::shared_ptr<BlockType>> blocks;
 
-  using Commit = rxcpp::observable<iroha::model::Block>;
-  std::unique_ptr<TestSubscriber<iroha::model::Proposal>> proposal_wrapper;
+  using Commit = iroha::Commit;
+  std::unique_ptr<TestSubscriber<std::shared_ptr<ProposalType>>>
+      proposal_wrapper;
   std::unique_ptr<TestSubscriber<Commit>> commit_wrapper;
 
   iroha::model::Block genesis_block;
@@ -119,9 +127,11 @@ class TxPipelineIntegrationTestFixture
  private:
   void setTestSubscribers(size_t num_blocks) {
     // verify proposal
-    proposal_wrapper = std::make_unique<TestSubscriber<iroha::model::Proposal>>(
-        make_test_subscriber<CallExact>(
-            irohad->getPeerCommunicationService()->on_proposal(), num_blocks));
+    proposal_wrapper =
+        std::make_unique<TestSubscriber<std::shared_ptr<ProposalType>>>(
+            make_test_subscriber<CallExact>(
+                irohad->getPeerCommunicationService()->on_proposal(),
+                num_blocks));
     proposal_wrapper->subscribe(
         [this](auto proposal) { proposals.push_back(proposal); });
 

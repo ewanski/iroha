@@ -71,8 +71,10 @@ class ClientServerTest : public testing::Test {
     wsv_query = std::make_shared<MockWsvQuery>();
     block_query = std::make_shared<MockBlockQuery>();
 
-    rxcpp::subjects::subject<iroha::model::Proposal> prop_notifier;
-    rxcpp::subjects::subject<Commit> commit_notifier;
+    rxcpp::subjects::subject<
+          std::shared_ptr<shared_model::interface::Proposal>>
+          prop_notifier;
+    rxcpp::subjects::subject<iroha::Commit> commit_notifier;
 
     EXPECT_CALL(*pcsMock, on_proposal())
         .WillRepeatedly(Return(prop_notifier.get_observable()));
@@ -90,15 +92,15 @@ class ClientServerTest : public testing::Test {
     auto qpf = std::make_unique<iroha::model::QueryProcessingFactory>(
         wsv_query, block_query);
 
-    auto qpi =
-        std::make_shared<iroha::torii::QueryProcessorImpl>(std::move(qpf));
+      auto qpi = std::make_shared<iroha::torii::QueryProcessorImpl>(
+          std::move(qpf));
 
-    //----------- Server run ----------------
-    runner
-        ->append(std::make_unique<torii::CommandService>(
-            tx_processor, block_query, proposal_delay))
-        .append(std::make_unique<torii::QueryService>(qpi))
-        .run();
+      //----------- Server run ----------------
+      runner
+          ->append(std::make_unique<torii::CommandService>( tx_processor, block_query, proposal_delay))
+          .append(std::make_unique<torii::QueryService>(qpi))
+          .run();
+
 
     runner->waitForServersReady();
   }

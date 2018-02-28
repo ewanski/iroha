@@ -19,10 +19,10 @@
 #define IROHA_COMMIT_HPP
 
 #include <rxcpp/rx-observable.hpp>
-#include "model/block.hpp"
+#include "interfaces/iroha_internal/block.hpp"
 
 namespace iroha {
-  using Commit = rxcpp::observable<model::Block>;
+  using OldCommit = rxcpp::observable<model::Block>;
 }  // namespace iroha
 
 #endif  // IROHA_COMMIT_HPP
