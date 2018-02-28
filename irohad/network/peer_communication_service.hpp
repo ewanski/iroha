@@ -18,10 +18,15 @@
 #ifndef IROHA_PEER_COMMUNICATION_SERVICE_HPP
 #define IROHA_PEER_COMMUNICATION_SERVICE_HPP
 
-#include "interfaces/iroha_internal/block.hpp"
-#include "interfaces/iroha_internal/proposal.hpp"
-
 #include <rxcpp/rx.hpp>
+
+namespace shared_model {
+  namespace interface {
+    class Block;
+    class Proposal;
+    class Transaction;
+  }  // namespace interface
+}  // namespace shared_model
 
 namespace iroha {
 

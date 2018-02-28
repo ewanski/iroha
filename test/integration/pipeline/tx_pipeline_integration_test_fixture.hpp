@@ -110,10 +110,9 @@ class TxPipelineIntegrationTestFixture
   std::vector<std::shared_ptr<ProposalType>> proposals;
   std::vector<std::shared_ptr<BlockType>> blocks;
 
-  using Commit = iroha::Commit;
   std::unique_ptr<TestSubscriber<std::shared_ptr<ProposalType>>>
       proposal_wrapper;
-  std::unique_ptr<TestSubscriber<Commit>> commit_wrapper;
+  std::unique_ptr<TestSubscriber<iroha::Commit>> commit_wrapper;
 
   iroha::model::Block genesis_block;
   std::vector<iroha::model::Proposal> expected_proposals;
@@ -136,7 +135,7 @@ class TxPipelineIntegrationTestFixture
         [this](auto proposal) { proposals.push_back(proposal); });
 
     // verify commit and block
-    commit_wrapper = std::make_unique<TestSubscriber<Commit>>(
+    commit_wrapper = std::make_unique<TestSubscriber<iroha::Commit>>(
         make_test_subscriber<CallExact>(
             irohad->getPeerCommunicationService()->on_commit(), num_blocks));
     commit_wrapper->subscribe([this](auto commit) {

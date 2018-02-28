@@ -35,6 +35,9 @@ limitations under the License.
 #include "builders/protobuf/block.hpp"
 #include "builders/protobuf/transaction.hpp"
 
+#include "module/shared_model/builders/protobuf/test_block_builder.hpp"
+#include "module/shared_model/builders/protobuf/test_proposal_builder.hpp"
+
 constexpr const char *Ip = "0.0.0.0";
 constexpr int Port = 50051;
 constexpr size_t TimesToriiBlocking = 5;
@@ -210,10 +213,8 @@ TEST_F(ToriiServiceTest, StatusWhenTxWasNotReceivedBlocking) {
            then STATEFUL_VALIDATION_FAILED
  */
 TEST_F(ToriiServiceTest, StatusWhenBlocking) {
-  std::vector<iroha::model::Transaction> txs;
+  std::vector<shared_model::proto::Transaction> txs;
   std::vector<std::string> tx_hashes;
-
-  iroha::model::converters::PbTransactionFactory tx_factory;
 
   auto client1 = torii::CommandSyncClient(Ip, Port);
 
@@ -232,18 +233,16 @@ TEST_F(ToriiServiceTest, StatusWhenBlocking) {
     auto new_tx = shm_tx.getTransport();
 
     auto stat = client1.Torii(new_tx);
-
-    auto iroha_tx = tx_factory.deserialize(new_tx);
-    txs.push_back(*iroha_tx);
-    auto tx_hash = iroha::hash(*iroha_tx);
-    tx_hashes.push_back(tx_hash.to_string());
+    txs.push_back(shm_tx);
+    auto tx_hash = shared_model::crypto::toBinaryString(shm_tx.hash());
+    tx_hashes.push_back(tx_hash);
 
     ASSERT_TRUE(stat.ok());
   }
 
   // create proposal from these transactions
   auto proposal = std::make_shared<shared_model::proto::Proposal>(
-      shared_model::proto::from_old(iroha::model::Proposal(txs)));
+      TestProposalBuilder().transactions(txs).build());
   prop_notifier_.get_subscriber().on_next(proposal);
 
   torii::CommandSyncClient client2(client1);
@@ -260,11 +259,15 @@ TEST_F(ToriiServiceTest, StatusWhenBlocking) {
   }
 
   // create block from the all transactions but the last one
-  iroha::model::Block old_block;
-  old_block.transactions.insert(
-      old_block.transactions.begin(), txs.begin(), txs.end() - 1);
+  txs.pop_back();
   auto block = std::make_shared<shared_model::proto::Block>(
-      shared_model::proto::from_old(old_block));
+      TestBlockBuilder()
+          .transactions(txs)
+          .height(1)
+          .txNumber(txs.size())
+          .createdTime(0)
+          .prevHash(shared_model::crypto::Hash(std::string(32, '0')))
+          .build());
 
   // create commit from block notifier's observable
   rxcpp::subjects::subject<std::shared_ptr<shared_model::interface::Block>>
