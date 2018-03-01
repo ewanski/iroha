@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-#include "builders/protobuf/block.hpp"
+#include "module/shared_model/builders/protobuf/test_block_builder.hpp"
 #include "module/irohad/ametsuchi/ametsuchi_mocks.hpp"
 #include "module/irohad/consensus/yac/yac_mocks.hpp"
 #include "module/irohad/model/model_mocks.hpp"
@@ -51,11 +51,7 @@ class ChainValidationTest : public ::testing::Test {
    * @return block builder
    */
   auto getBlockBuilder() const {
-    constexpr auto kTotal = (1 << 5) - 1;
-    return shared_model::proto::TemplateBlockBuilder<
-               kTotal,
-               shared_model::validation::DefaultBlockValidator,
-               shared_model::proto::Block>()
+    return TestBlockBuilder()
         .transactions(std::vector<shared_model::proto::Transaction>{})
         .txNumber(0)
         .height(1)
