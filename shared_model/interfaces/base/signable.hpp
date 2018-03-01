@@ -36,12 +36,13 @@ namespace shared_model {
 #define SIGNABLE(Model) Signable<Model, iroha::model::Model>
 #endif
 
-  /**
-   * Interface provides signatures and adding them to model object
-   * @tparam Model - your new style model
-   * Architecture note: we inherit Signable from Hashable with following
-   * assumption - all Signable objects are signed by hash value.
-   */
+    /**
+     * Interface provides signatures and adding them to model object
+     * @tparam Model - your new style model
+     * Architecture note: we inherit Signable from Hashable with following
+     * assumption - all Signable objects are signed by hash value.
+     */
+
 #ifndef DISABLE_BACKWARD
     template <typename Model, typename OldModel>
     class Signable : public Hashable<Model, OldModel> {
