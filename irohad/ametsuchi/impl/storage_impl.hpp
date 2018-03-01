@@ -57,7 +57,7 @@ namespace iroha {
       expected::Result<std::unique_ptr<MutableStorage>, std::string>
       createMutableStorage() override;
 
-      virtual bool insertBlock(model::Block block) override;
+      virtual bool insertBlock(model::Block old_block) override;
 
       virtual void dropStorage() override;
 

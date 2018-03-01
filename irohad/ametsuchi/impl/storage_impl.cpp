@@ -131,7 +131,7 @@ namespace iroha {
               std::move(command_executors.value())));
     }
 
-    bool StorageImpl::insertBlock(model::Block block) {
+    bool StorageImpl::insertBlock(model::Block old_block) {
       log_->info("create mutable storage");
       auto storageResult = createMutableStorage();
       bool inserted = false;
@@ -141,10 +141,10 @@ namespace iroha {
 
             // TODO: 14-02-2018 Alexey Chernyshov remove this after relocation to
             // shared_model https://soramitsu.atlassian.net/browse/IR-887
-            auto new_block = shared_model::proto::from_old(block);
+            auto block = shared_model::proto::from_old(old_block);
 
             inserted =
-                storage.value->apply(new_block,
+                storage.value->apply(block,
                                      [](const auto &current_block,
                                         auto &query,
                                         const auto &top_hash) { return true; });

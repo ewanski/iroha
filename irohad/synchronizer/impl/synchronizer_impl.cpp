@@ -45,7 +45,7 @@ namespace iroha {
       subscription_.unsubscribe();
     }
 
-    void SynchronizerImpl::process_commit(iroha::model::Block commit_message) {
+    void SynchronizerImpl::process_commit(iroha::model::Block old_commit_message) {
       log_->info("processing commit");
       auto storageResult = mutableFactory_->createMutableStorage();
       std::unique_ptr<ametsuchi::MutableStorage> storage;
@@ -62,19 +62,19 @@ namespace iroha {
 
       // TODO: 14-02-2018 Alexey Chernyshov remove this after relocation to
       // shared_model https://soramitsu.atlassian.net/browse/IR-903
-      auto new_commit_message = shared_model::proto::from_old(commit_message);
-      if (validator_->validateBlock(new_commit_message, *storage)) {
+      auto commit_message = shared_model::proto::from_old(old_commit_message);
+      if (validator_->validateBlock(commit_message, *storage)) {
         // Block can be applied to current storage
         // Commit to main Ametsuchi
         mutableFactory_->commit(std::move(storage));
 
-        auto single_commit = rxcpp::observable<>::just(commit_message);
+        auto single_commit = rxcpp::observable<>::just(old_commit_message);
 
         notifier_.get_subscriber().on_next(single_commit);
       } else {
         // Block can't be applied to current storage
         // Download all missing blocks
-        for (auto signature : commit_message.sigs) {
+        for (auto signature : old_commit_message.sigs) {
           auto storageResult = mutableFactory_->createMutableStorage();
           std::unique_ptr<ametsuchi::MutableStorage> storage;
           storageResult.match(

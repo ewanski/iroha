@@ -26,6 +26,7 @@
 #include "ametsuchi/mutable_storage.hpp"
 #include "common/byteutils.hpp"
 #include "framework/test_subscriber.hpp"
+#include "interfaces/iroha_internal/block.hpp"
 #include "model/account.hpp"
 #include "model/account_asset.hpp"
 #include "model/asset.hpp"
@@ -36,7 +37,7 @@
 #include "model/permissions.hpp"
 #include "model/sha3_hash.hpp"
 #include "module/irohad/ametsuchi/ametsuchi_fixture.hpp"
-#include "interfaces/iroha_internal/block.hpp"
+#include "module/shared_model/builders/protobuf/test_block_builder.hpp"
 
 // TODO: 14-02-2018 Alexey Chernyshov remove this after relocation to
 // shared_model https://soramitsu.atlassian.net/browse/IR-880
@@ -180,11 +181,8 @@ TEST_F(AmetsuchiTest, GetBlocksCompletedWhenCalled) {
   ASSERT_TRUE(storage);
   auto blocks = storage->getBlockQuery();
 
-  Block block;
-  block.height = 1;
-
-  auto new_block = shared_model::proto::from_old(block);
-  apply(storage, new_block);
+  auto block = TestBlockBuilder().height(1).build();
+  apply(storage, block);
 
   auto completed_wrapper =
       make_test_subscriber<IsCompleted>(blocks->getBlocks(1, 1));
@@ -228,16 +226,16 @@ TEST_F(AmetsuchiTest, SampleTest) {
   txn.commands.push_back(cmd_gen.generateCreateAccount(user1name, domain, {}));
 
   // Compose block
-  Block block;
-  block.transactions.push_back(txn);
-  block.height = 1;
-  block.prev_hash.fill(0);
-  auto block1hash = iroha::hash(block);
-  block.hash = block1hash;
-  block.txs_number = block.transactions.size();
+  Block old_block;
+  old_block.transactions.push_back(txn);
+  old_block.height = 1;
+  old_block.prev_hash.fill(0);
+  auto block1hash = iroha::hash(old_block);
+  old_block.hash = block1hash;
+  old_block.txs_number = old_block.transactions.size();
 
-  auto new_block = shared_model::proto::from_old(block);
-  apply(storage, new_block);
+  auto block = shared_model::proto::from_old(old_block);
+  apply(storage, block);
 
   validateAccount(wsv, user1id, domain);
 
@@ -260,16 +258,16 @@ TEST_F(AmetsuchiTest, SampleTest) {
       user1id, user2id, assetid, iroha::Amount(100, 2)));
 
   // Compose block
-  block = Block();
-  block.transactions.push_back(txn);
-  block.height = 2;
-  block.prev_hash = block1hash;
-  auto block2hash = iroha::hash(block);
-  block.hash = block2hash;
-  block.txs_number = block.transactions.size();
+  old_block = Block();
+  old_block.transactions.push_back(txn);
+  old_block.height = 2;
+  old_block.prev_hash = block1hash;
+  auto block2hash = iroha::hash(old_block);
+  old_block.hash = block2hash;
+  old_block.txs_number = old_block.transactions.size();
 
-  auto new_block2 = shared_model::proto::from_old(block);
-  apply(storage, new_block2);
+  auto block2 = shared_model::proto::from_old(old_block);
+  apply(storage, block2);
 
   validateAccountAsset(wsv, user1id, assetid, iroha::Amount(50, 2));
   validateAccountAsset(wsv, user2id, assetid, iroha::Amount(100, 2));
@@ -314,11 +312,11 @@ TEST_F(AmetsuchiTest, PeerTest) {
   addPeer.peer.address = "192.168.0.1:50051";
   txn.commands.push_back(std::make_shared<AddPeer>(addPeer));
 
-  Block block;
-  block.transactions.push_back(txn);
+  Block old_block;
+  old_block.transactions.push_back(txn);
 
-  auto new_block = shared_model::proto::from_old(block);
-  apply(storage, new_block);
+  auto block = shared_model::proto::from_old(old_block);
+  apply(storage, block);
 
   auto peers = wsv->getPeers();
   ASSERT_TRUE(peers);
@@ -376,16 +374,16 @@ TEST_F(AmetsuchiTest, queryGetAccountAssetTransactionsTest) {
   txn.commands.push_back(cmd_gen.generateAddAssetQuantity(
       user2id, asset2id, iroha::Amount(250, 2)));
 
-  Block block;
-  block.transactions.push_back(txn);
-  block.height = 1;
-  block.prev_hash.fill(0);
-  auto block1hash = iroha::hash(block);
-  block.hash = block1hash;
-  block.txs_number = static_cast<uint16_t>(block.transactions.size());
+  Block old_block;
+  old_block.transactions.push_back(txn);
+  old_block.height = 1;
+  old_block.prev_hash.fill(0);
+  auto block1hash = iroha::hash(old_block);
+  old_block.hash = block1hash;
+  old_block.txs_number = static_cast<uint16_t>(old_block.transactions.size());
 
-  auto new_block = shared_model::proto::from_old(block);
-  apply(storage, new_block);
+  auto block = shared_model::proto::from_old(old_block);
+  apply(storage, block);
 
   // Check querying accounts
   for (const auto &id : {user1id, user2id, user3id}) {
@@ -404,16 +402,16 @@ TEST_F(AmetsuchiTest, queryGetAccountAssetTransactionsTest) {
   txn.commands.push_back(cmd_gen.generateTransferAsset(
       user1id, user2id, asset1id, iroha::Amount(120, 2)));
 
-  block = Block();
-  block.transactions.push_back(txn);
-  block.height = 2;
-  block.prev_hash = block1hash;
-  auto block2hash = iroha::hash(block);
-  block.hash = block2hash;
-  block.txs_number = static_cast<uint16_t>(block.transactions.size());
+  old_block = Block();
+  old_block.transactions.push_back(txn);
+  old_block.height = 2;
+  old_block.prev_hash = block1hash;
+  auto block2hash = iroha::hash(old_block);
+  old_block.hash = block2hash;
+  old_block.txs_number = static_cast<uint16_t>(old_block.transactions.size());
 
-  auto new_block2 = shared_model::proto::from_old(block);
-  apply(storage, new_block2);
+  auto block2 = shared_model::proto::from_old(old_block);
+  apply(storage, block2);
 
   // Check account asset after transfer assets
   validateAccountAsset(wsv, user1id, asset1id, iroha::Amount(180, 2));
@@ -430,16 +428,16 @@ TEST_F(AmetsuchiTest, queryGetAccountAssetTransactionsTest) {
   txn.commands.push_back(cmd_gen.generateTransferAsset(
       user2id, user1id, asset2id, iroha::Amount(10, 2)));
 
-  block = Block();
-  block.transactions.push_back(txn);
-  block.height = 3;
-  block.prev_hash = block2hash;
-  auto block3hash = iroha::hash(block);
-  block.hash = block3hash;
-  block.txs_number = static_cast<uint16_t>(block.transactions.size());
+  old_block = Block();
+  old_block.transactions.push_back(txn);
+  old_block.height = 3;
+  old_block.prev_hash = block2hash;
+  auto block3hash = iroha::hash(old_block);
+  old_block.hash = block3hash;
+  old_block.txs_number = static_cast<uint16_t>(old_block.transactions.size());
 
-  auto new_block3 = shared_model::proto::from_old(block);
-  apply(storage, new_block3);
+  auto block3 = shared_model::proto::from_old(old_block);
+  apply(storage, block3);
 
   validateAccountAsset(wsv, user2id, asset2id, iroha::Amount(90, 2));
   validateAccountAsset(wsv, user3id, asset2id, iroha::Amount(150, 2));
@@ -512,16 +510,16 @@ TEST_F(AmetsuchiTest, AddSignatoryTest) {
   createAccount.pubkey = pubkey1;
   txn.commands.push_back(std::make_shared<CreateAccount>(createAccount));
 
-  Block block;
-  block.transactions.push_back(txn);
-  block.height = 1;
-  block.prev_hash.fill(0);
-  auto block1hash = iroha::hash(block);
-  block.hash = block1hash;
-  block.txs_number = block.transactions.size();
+  Block old_block;
+  old_block.transactions.push_back(txn);
+  old_block.height = 1;
+  old_block.prev_hash.fill(0);
+  auto block1hash = iroha::hash(old_block);
+  old_block.hash = block1hash;
+  old_block.txs_number = old_block.transactions.size();
 
-  auto new_block = shared_model::proto::from_old(block);
-  apply(storage, new_block);
+  auto block = shared_model::proto::from_old(old_block);
+  apply(storage, block);
 
   {
     auto account = wsv->getAccount(user1id);
@@ -544,16 +542,16 @@ TEST_F(AmetsuchiTest, AddSignatoryTest) {
   addSignatory.pubkey = pubkey2;
   txn.commands.push_back(std::make_shared<AddSignatory>(addSignatory));
 
-  block = Block();
-  block.transactions.push_back(txn);
-  block.height = 2;
-  block.prev_hash = block1hash;
-  auto block2hash = iroha::hash(block);
-  block.hash = block2hash;
-  block.txs_number = block.transactions.size();
+  old_block = Block();
+  old_block.transactions.push_back(txn);
+  old_block.height = 2;
+  old_block.prev_hash = block1hash;
+  auto block2hash = iroha::hash(old_block);
+  old_block.hash = block2hash;
+  old_block.txs_number = old_block.transactions.size();
 
-  auto new_block2 = shared_model::proto::from_old(block);
-  apply(storage, new_block2);
+  auto block2 = shared_model::proto::from_old(old_block);
+  apply(storage, block2);
   {
     auto account = wsv->getAccount(user1id);
     ASSERT_TRUE(account);
@@ -575,16 +573,16 @@ TEST_F(AmetsuchiTest, AddSignatoryTest) {
   createAccount.pubkey = pubkey1;  // same as user1's pubkey1
   txn.commands.push_back(std::make_shared<CreateAccount>(createAccount));
 
-  block = Block();
-  block.transactions.push_back(txn);
-  block.height = 3;
-  block.prev_hash = block2hash;
-  auto block3hash = iroha::hash(block);
-  block.hash = block3hash;
-  block.txs_number = block.transactions.size();
+  old_block = Block();
+  old_block.transactions.push_back(txn);
+  old_block.height = 3;
+  old_block.prev_hash = block2hash;
+  auto block3hash = iroha::hash(old_block);
+  old_block.hash = block3hash;
+  old_block.txs_number = old_block.transactions.size();
 
-  auto new_block3 = shared_model::proto::from_old(block);
-  apply(storage, new_block3);
+  auto block3 = shared_model::proto::from_old(old_block);
+  apply(storage, block3);
 
   {
     auto account1 = wsv->getAccount(user1id);
@@ -614,16 +612,16 @@ TEST_F(AmetsuchiTest, AddSignatoryTest) {
   removeSignatory.pubkey = pubkey1;
   txn.commands.push_back(std::make_shared<RemoveSignatory>(removeSignatory));
 
-  block = Block();
-  block.transactions.push_back(txn);
-  block.height = 4;
-  block.prev_hash = block3hash;
-  auto block4hash = iroha::hash(block);
-  block.hash = block4hash;
-  block.txs_number = block.transactions.size();
+  old_block = Block();
+  old_block.transactions.push_back(txn);
+  old_block.height = 4;
+  old_block.prev_hash = block3hash;
+  auto block4hash = iroha::hash(old_block);
+  old_block.hash = block4hash;
+  old_block.txs_number = old_block.transactions.size();
 
-  auto new_block4 = shared_model::proto::from_old(block);
-  apply(storage, new_block4);
+  auto block4 = shared_model::proto::from_old(old_block);
+  apply(storage, block4);
 
   {
     auto account = wsv->getAccount(user1id);
@@ -656,16 +654,16 @@ TEST_F(AmetsuchiTest, AddSignatoryTest) {
   seqQuorum.new_quorum = 2;
   txn.commands.push_back(std::make_shared<SetQuorum>(seqQuorum));
 
-  block = Block();
-  block.transactions.push_back(txn);
-  block.height = 5;
-  block.prev_hash = block4hash;
-  auto block5hash = iroha::hash(block);
-  block.hash = block5hash;
-  block.txs_number = block.transactions.size();
+  old_block = Block();
+  old_block.transactions.push_back(txn);
+  old_block.height = 5;
+  old_block.prev_hash = block4hash;
+  auto block5hash = iroha::hash(old_block);
+  old_block.hash = block5hash;
+  old_block.txs_number = old_block.transactions.size();
 
-  auto new_block5 = shared_model::proto::from_old(block);
-  apply(storage, new_block5);
+  auto block5 = shared_model::proto::from_old(old_block);
+  apply(storage, block5);
 
   {
     auto account = wsv->getAccount(user2id);
@@ -689,16 +687,16 @@ TEST_F(AmetsuchiTest, AddSignatoryTest) {
   removeSignatory.pubkey = pubkey2;
   txn.commands.push_back(std::make_shared<RemoveSignatory>(removeSignatory));
 
-  block = Block();
-  block.transactions.push_back(txn);
-  block.height = 6;
-  block.prev_hash = block5hash;
-  auto block6hash = iroha::hash(block);
-  block.hash = block6hash;
-  block.txs_number = block.transactions.size();
+  old_block = Block();
+  old_block.transactions.push_back(txn);
+  old_block.height = 6;
+  old_block.prev_hash = block5hash;
+  auto block6hash = iroha::hash(old_block);
+  old_block.hash = block6hash;
+  old_block.txs_number = old_block.transactions.size();
 
-  auto new_block6 = shared_model::proto::from_old(block);
-  apply(storage, new_block6);
+  auto block6 = shared_model::proto::from_old(old_block);
+  apply(storage, block6);
 
   {
     // user2 only has pubkey1.
@@ -866,16 +864,16 @@ TEST_F(AmetsuchiTest, FindTxByHashTest) {
   createDomain2.user_default_role = "user";
   tx2.commands.push_back(std::make_shared<CreateDomain>(createDomain2));
 
-  Block block;
-  block.transactions.push_back(tx1);
-  block.transactions.push_back(tx2);
-  block.height = 1;
-  block.prev_hash.fill(0);
-  block.txs_number = block.transactions.size();
-  block.hash = iroha::hash(block);
+  Block old_block;
+  old_block.transactions.push_back(tx1);
+  old_block.transactions.push_back(tx2);
+  old_block.height = 1;
+  old_block.prev_hash.fill(0);
+  old_block.txs_number = old_block.transactions.size();
+  old_block.hash = iroha::hash(old_block);
 
-  auto new_block = shared_model::proto::from_old(block);
-  apply(storage, new_block);
+  auto block = shared_model::proto::from_old(old_block);
+  apply(storage, block);
 
   // TODO: 31.10.2017 luckychess move tx3hash case into a separate test after
   // ametsuchi_test redesign

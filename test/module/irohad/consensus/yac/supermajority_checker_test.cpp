@@ -30,7 +30,12 @@ class SupermajorityCheckerTest : public ::testing::Test,
   void SetUp() override {}
 };
 
-TEST_F(SupermajorityCheckerTest, SupermajorityFunctionForAllCases2) {
+/**
+ * @given 2 participants
+ * @when check range of voted participants
+ * @then correct result
+ */
+TEST_F(SupermajorityCheckerTest, SuperMajorityCheckWithSize2) {
   log_->info("-----------| F(x, 2), x in {0..3} -----------");
 
   int N = 2;
@@ -40,7 +45,12 @@ TEST_F(SupermajorityCheckerTest, SupermajorityFunctionForAllCases2) {
   ASSERT_FALSE(checkSize(3, N));
 }
 
-TEST_F(SupermajorityCheckerTest, SupermajorityFunctionForAllCases4) {
+/**
+ * @given 4 participants
+ * @when check range of voted participants
+ * @then correct result
+ */
+TEST_F(SupermajorityCheckerTest, SuperMajorityCheckWithSize4) {
   log_->info("-----------| F(x, 4), x in {0..5} |-----------");
 
   int N = 4;
@@ -52,6 +62,11 @@ TEST_F(SupermajorityCheckerTest, SupermajorityFunctionForAllCases4) {
   ASSERT_FALSE(checkSize(5, N));
 }
 
+/**
+ * @given 7 participants, 6 voted
+ * @when check range of frequent elements
+ * @then correct result
+ */
 TEST_F(SupermajorityCheckerTest, RejectProofSuccessfulCase) {
   log_->info("-----------| RejectProof(x, 6, 7) in {1..3} |-----------");
 
@@ -60,6 +75,11 @@ TEST_F(SupermajorityCheckerTest, RejectProofSuccessfulCase) {
   ASSERT_TRUE(hasReject(3, 6, 7));
 }
 
+/**
+ * @given 7 participants, 6 voted
+ * @when check range of frequent elements
+ * @then correct result
+ */
 TEST_F(SupermajorityCheckerTest, RejectProofNegativeCase) {
   log_->info("-----------| RejectProof(x, 6, 7) in {4..6}|-----------");
 

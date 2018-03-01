@@ -50,10 +50,10 @@ namespace iroha {
                                   // TODO: 14-02-2018 Alexey Chernyshov remove
                                   // this after relocation to shared_model
                                   // https://soramitsu.atlassian.net/browse/IR-903
-                                  shared_model::crypto::PublicKey new_pubkey(
+                                  shared_model::crypto::PublicKey pubkey(
                                       {peer.pubkey.begin(), peer.pubkey.end()});
 
-                                  return signature->publicKey() == new_pubkey;
+                                  return signature->publicKey() == pubkey;
                                 })
                 != peers.end();
           });

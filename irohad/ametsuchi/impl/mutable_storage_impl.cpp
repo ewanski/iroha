@@ -76,9 +76,9 @@ namespace iroha {
       transaction_->exec("SAVEPOINT savepoint_;");
       // TODO: 14-02-2018 Alexey Chernyshov remove this after relocation to
       // shared_model https://soramitsu.atlassian.net/browse/IR-881
-      shared_model::crypto::Hash new_hash({top_hash_.begin(), top_hash_.end()});
+      shared_model::crypto::Hash hash({top_hash_.begin(), top_hash_.end()});
 
-      auto result = function(new_block, *wsv_, new_hash)
+      auto result = function(new_block, *wsv_, hash)
           and std::all_of(block->transactions.begin(),
                           block->transactions.end(),
                           execute_transaction);
