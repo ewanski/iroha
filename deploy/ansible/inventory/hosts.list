@@ -5,3 +5,4 @@ node-3 ansible_host=209.250.248.185 ssh_user=root
 
 [arm]
 arm-1 ansible_host=51.15.221.61 ssh_user=root
+arm-2 ansible_host=51.15.214.94 ssh_user=root
