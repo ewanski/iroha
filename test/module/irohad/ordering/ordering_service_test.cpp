@@ -24,6 +24,7 @@
 #include "module/irohad/network/network_mocks.hpp"
 
 #include "ametsuchi/ordering_service_persistent_state.hpp"
+#include "backend/protobuf/common_objects/peer.hpp"
 #include "mock_ordering_service_persistent_state.hpp"
 #include "builders/common_objects/peer_builder.hpp"
 #include "builders/protobuf/common_objects/proto_peer_builder.hpp"
@@ -33,6 +34,7 @@
 #include "ordering/impl/ordering_service_transport_grpc.hpp"
 #include "validators/field_validator.hpp"
 
+#include "builders/protobuf/common_objects/proto_peer_builder.hpp"
 #include "module/shared_model/builders/protobuf/test_proposal_builder.hpp"
 #include "module/shared_model/builders/protobuf/test_transaction_builder.hpp"
 
@@ -49,6 +51,8 @@ using ::testing::DoAll;
 using ::testing::Invoke;
 using ::testing::InvokeWithoutArgs;
 using ::testing::Return;
+
+using wPeer = std::shared_ptr<shared_model::interface::Peer>;
 
 static logger::Logger log_ = logger::testLog("OrderingService");
 
@@ -151,8 +155,14 @@ TEST_F(OrderingServiceTest, ValidWhenProposalSizeStrategy) {
         cv.notify_one();
       }));
 
+  shared_model::proto::PeerBuilder builder;
+
+  auto key = shared_model::crypto::PublicKey(peer.pubkey.to_string());
+  auto tmp = builder.address(peer.address).pubkey(key).build();
+
+  wPeer w_peer(tmp.copy());
   EXPECT_CALL(*wsv, getLedgerPeers())
-      .WillRepeatedly(Return(std::vector<decltype(peer)>{peer}));
+      .WillRepeatedly(Return(std::vector<wPeer>{w_peer}));
 
   for (size_t i = 0; i < 10; ++i) {
     ordering_service->onTransaction(empty_tx());
@@ -167,8 +177,14 @@ TEST_F(OrderingServiceTest, ValidWhenTimerStrategy) {
 
   EXPECT_CALL(*fake_persistent_state, saveProposalHeight(_)).Times(2);
 
+  shared_model::proto::PeerBuilder builder;
+
+  auto key = shared_model::crypto::PublicKey(peer.pubkey.to_string());
+  auto tmp = builder.address(peer.address).pubkey(key).build();
+
+  wPeer w_peer(tmp.copy());
   EXPECT_CALL(*wsv, getLedgerPeers())
-      .WillRepeatedly(Return(std::vector<decltype(peer)>{peer}));
+      .WillRepeatedly(Return(std::vector<wPeer>{w_peer}));
 
   const size_t max_proposal = 100;
   const size_t commit_delay = 400;

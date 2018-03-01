@@ -19,6 +19,7 @@
 #include "ametsuchi/ordering_service_persistent_state.hpp"
 #include "backend/protobuf/transaction.hpp"
 #include "builders/protobuf/proposal.hpp"
+#include "logger/logger.hpp"
 
 namespace iroha {
   namespace ordering {
@@ -35,6 +36,7 @@ namespace iroha {
           transport_(transport),
           persistent_state_(persistent_state) {
       updateTimer();
+      log_ = logger::log("OrderingServiceImpl");
 
       // restore state of ordering service from persistent storage
       proposal_height = persistent_state_->loadProposalHeight().value();
@@ -43,6 +45,7 @@ namespace iroha {
     void OrderingServiceImpl::onTransaction(
         std::shared_ptr<shared_model::interface::Transaction> transaction) {
       queue_.push(transaction);
+      log_->info("Queue size is {}", queue_.unsafe_size());
 
       if (queue_.unsafe_size() >= max_size_) {
         handle.unsubscribe();
@@ -52,6 +55,7 @@ namespace iroha {
 
     void OrderingServiceImpl::generateProposal() {
       std::vector<shared_model::proto::Transaction> fetched_txs;
+        log_->info("Start proposal generation");
       for (std::shared_ptr<shared_model::interface::Transaction> tx;
            fetched_txs.size() < max_size_ and queue_.try_pop(tx);) {
         fetched_txs.emplace_back(
@@ -76,17 +80,9 @@ namespace iroha {
         std::unique_ptr<shared_model::interface::Proposal> proposal) {
       std::vector<std::string> peers;
 
-      auto shared_lst = wsv_->getLedgerPeers();
-      auto lst = shared_lst | [](auto &a) {
-        std::vector<model::Peer> peers;
-        std::transform(
-            a.begin(), a.end(), std::back_inserter(peers), [](auto &peer) {
-              return *std::unique_ptr<iroha::model::Peer>(peer->makeOldModel());
-            });
-        return nonstd::make_optional(peers);
-      };
-      for (const auto &peer : lst.value()) {
-        peers.push_back(peer.address);
+      auto lst = wsv_->getLedgerPeers().value();
+      for (const auto &peer : lst) {
+        peers.push_back(peer->address());
       }
       transport_->publishProposal(std::move(proposal), peers);
     }

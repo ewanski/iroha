@@ -72,6 +72,7 @@ addtest(yac_peer_orderer_test peer_orderer_test.cpp)
 target_link_libraries(yac_peer_orderer_test
     yac
     shared_model_stateless_validation
+    model
     )
 
 addtest(yac_gate_test yac_gate_test.cpp)
