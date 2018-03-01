@@ -45,7 +45,7 @@ namespace iroha {
         return false;
       psc_subscriber_ = psc.lock()->on_commit().subscribe([this](auto) {
         unlock_next_.store(true);
-        tryNextRound();
+        this->tryNextRound();
 
       });
       return true;
@@ -61,6 +61,7 @@ namespace iroha {
       std::shared_ptr<model::Proposal> next_proposal;
       if (unlock_next_.load() and proposal_queue_.try_pop(next_proposal)) {
         unlock_next_.store(false);
+        log_->info("Throw proposal to pipeline");
         proposals_.get_subscriber().on_next(*next_proposal);
       }
     }
