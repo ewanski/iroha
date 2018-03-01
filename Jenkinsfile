@@ -136,13 +136,13 @@ pipeline {
                             env.CCACHE_DIR = "${env.IROHA_HOME}/.ccache"
 
                             sh """
-                                ccache --version
-                                ccache --show-stats
-                                ccache --zero-stats
-                                ccache --max-size=5G
+                                /usr/local/bin/ccache --version
+                                /usr/local/bin/ccache --show-stats
+                                /usr/local/bin/ccache --zero-stats
+                                /usr/local/bin/ccache --max-size=5G
                             """
                             sh """
-                                cmake \
+                                /usr/local/bin/cmake \
                                   -DCOVERAGE=ON \
                                   -DTESTING=ON \
                                   -H. \
@@ -150,8 +150,8 @@ pipeline {
                                   -DCMAKE_BUILD_TYPE=${params.BUILD_TYPE} \
                                   -DIROHA_VERSION=${env.IROHA_VERSION}
                             """
-                            sh "cmake --build build -- -j${params.PARALLELISM}"
-                            sh "ccache --show-stats"
+                            sh "/usr/local/bin/cmake --build build -- -j${params.PARALLELISM}"
+                            sh "/usr/local/bin/ccache --show-stats"
                             
                             // TODO: replace with upload to artifactory server
                             // only develop branch
@@ -246,20 +246,20 @@ pipeline {
                             env.CCACHE_DIR = "${env.IROHA_HOME}/.ccache"
 
                             sh """
-                                ccache --version
-                                ccache --show-stats
-                                ccache --zero-stats
-                                ccache --max-size=5G
+                                /usr/local/bin/ccache --version
+                                /usr/local/bin/ccache --show-stats
+                                /usr/local/bin/ccache --zero-stats
+                                /usr/local/bin/ccache --max-size=5G
                             """    
                             sh """
-                                cmake \
+                                /usr/local/bin/cmake \
                                   -H. \
                                   -Bbuild \
                                   -DCMAKE_BUILD_TYPE=${params.BUILD_TYPE} \
                                   -DIROHA_VERSION=${env.IROHA_VERSION}
                             """
-                            sh "cmake --build build -- -j${params.PARALLELISM}"
-                            sh "ccache --show-stats"
+                            sh "/usr/local/bin/cmake --build build -- -j${params.PARALLELISM}"
+                            sh "/usr/local/bin/ccache --show-stats"
                             
                             // TODO: replace with upload to artifactory server
                             // only develop branch
