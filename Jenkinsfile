@@ -39,6 +39,8 @@ pipeline {
         IROHA_REDIS_HOST = "redis-${GIT_COMMIT}-${BUILD_NUMBER}"
         IROHA_POSTGRES_PORT = 5432
         IROHA_REDIS_PORT = 6379
+
+        LCOV_ALREADY_BUILT = 0
     }
 
     options {

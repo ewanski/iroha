@@ -9,7 +9,7 @@ RUN apt-get update;\
 
 #Install iroha
 COPY iroha.deb /tmp/iroha.deb
-RUN dpkg -i /tmp/iroha.deb
+RUN dpkg -i /tmp/iroha.deb; rm -f /tmp/iroha.deb
 
 WORKDIR /opt/iroha_data
 
