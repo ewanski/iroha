@@ -12,10 +12,6 @@ def doDebugBuild() {
 	    + " --name ${env.IROHA_POSTGRES_HOST}"
 	    + " --network=${env.IROHA_NETWORK}")
 
-	docker.image('redis:3.2.8').run(""
-	    + " --name ${env.IROHA_REDIS_HOST}"
-	    + " --network=${env.IROHA_NETWORK}")
-
 	def platform = sh(script: 'uname -m', returnStdout: true).trim()
 	// TODO: replace Github pull path as soon as multiplatform support will be merged
 	sh "curl -L -o /tmp/${env.GIT_COMMIT}/Dockerfile --create-dirs https://raw.githubusercontent.com/hyperledger/iroha/${env.GIT_COMMIT}/docker/develop/${platform}/Dockerfile"
@@ -37,8 +33,6 @@ def doDebugBuild() {
 	    + " -e IROHA_POSTGRES_PORT=${env.IROHA_POSTGRES_PORT}"
 	    + " -e IROHA_POSTGRES_USER=${env.IROHA_POSTGRES_USER}"
 	    + " -e IROHA_POSTGRES_PASSWORD=${env.IROHA_POSTGRES_PASSWORD}"
-	    + " -e IROHA_REDIS_HOST=${env.IROHA_REDIS_HOST}"
-	    + " -e IROHA_REDIS_PORT=${env.IROHA_REDIS_PORT}"
 	    + " --network=${env.IROHA_NETWORK}"
 	    + " -v /var/jenkins/ccache:${CCACHE_DIR}") {
 
