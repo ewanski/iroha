@@ -29,8 +29,8 @@
 #include "ametsuchi/temporary_wsv.hpp"
 #include "ametsuchi/wsv_query.hpp"
 #include "common/result.hpp"
-#include "interfaces/common_objects/peer.hpp"
 #include "cryptography/hash.hpp"
+#include "interfaces/common_objects/peer.hpp"
 #include "interfaces/iroha_internal/block.hpp"
 #include "model/account.hpp"
 #include "model/account_asset.hpp"
@@ -159,8 +159,9 @@ namespace iroha {
       MOCK_METHOD2(
           apply,
           bool(const shared_model::interface::Block &,
-               std::function<bool(
-                   const shared_model::interface::Block &, WsvQuery &, const shared_model::crypto::Hash &)>));
+               std::function<bool(const shared_model::interface::Block &,
+                                  WsvQuery &,
+                                  const shared_model::crypto::Hash &)>));
     };
 
     /**
@@ -192,8 +193,7 @@ namespace iroha {
      public:
       MockPeerQuery() = default;
 
-      MOCK_METHOD0(getLedgerPeers,
-                   boost::optional<std::vector<wPeer>>());
+      MOCK_METHOD0(getLedgerPeers, boost::optional<std::vector<wPeer>>());
     };
 
     class MockStorage : public Storage {

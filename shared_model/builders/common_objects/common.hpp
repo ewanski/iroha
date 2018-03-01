@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-#ifndef IROHA_SHARED_MODEL_BUILDER_COMMON_HPP
-#define IROHA_SHARED_MODEL_BUILDER_COMMON_HPP
+#ifndef IROHA_BUILDERS_COMMON_HPP
+#define IROHA_BUILDERS_COMMON_HPP
 
 #include "common/result.hpp"
 #include "utils/polymorphic_wrapper.hpp"
@@ -64,7 +64,8 @@ namespace shared_model {
         }
 
         if (answer) {
-          return iroha::expected::makeError(std::make_shared<std::string>(answer.reason()));
+          return iroha::expected::makeError(
+              std::make_shared<std::string>(answer.reason()));
         }
 
         return iroha::expected::makeValue(std::move(model_impl));
@@ -89,4 +90,4 @@ namespace shared_model {
     };
   }  // namespace builder
 }  // namespace shared_model
-#endif  // IROHA_SHARED_MODEL_BUILDER_COMMON_HPP
+#endif  // IROHA_BUILDERS_COMMON_HPP
