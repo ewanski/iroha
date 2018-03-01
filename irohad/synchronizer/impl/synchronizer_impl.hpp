@@ -34,6 +34,8 @@ namespace iroha {
           std::shared_ptr<ametsuchi::MutableFactory> mutableFactory,
           std::shared_ptr<network::BlockLoader> blockLoader);
 
+      ~SynchronizerImpl();
+
       void process_commit(iroha::model::Block commit_message) override;
 
       rxcpp::observable<Commit> on_commit_chain() override;
@@ -45,6 +47,7 @@ namespace iroha {
 
       // internal
       rxcpp::subjects::subject<Commit> notifier_;
+      rxcpp::composite_subscription subscription_;
 
       logger::Logger log_;
     };

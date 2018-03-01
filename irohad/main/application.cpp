@@ -60,25 +60,6 @@ Irohad::Irohad(const std::string &block_store_dir,
   initStorage();
 }
 
-Irohad::~Irohad() {
-  // Shutting down services used by internal server
-  if (internal_server) {
-    internal_server->Shutdown();
-  }
-  // Shutting down torii server
-  if (torii_server) {
-    torii_server->shutdown();
-  }
-  // Waiting until internal server thread dies
-  if (internal_thread.joinable()) {
-    internal_thread.join();
-  }
-  // Waiting until torii server thread dies
-  if (server_thread.joinable()) {
-    server_thread.join();
-  }
-}
-
 /**
  * Initializing iroha daemon
  */
@@ -235,7 +216,7 @@ void Irohad::initTransactionCommandService() {
   auto tx_processor = std::make_shared<TransactionProcessorImpl>(pcs);
 
   command_service = std::make_unique<::torii::CommandService>(
-      tx_processor, storage, proposal_delay_);
+      tx_processor, storage->getBlockQuery(), proposal_delay_);
 
   log_->info("[Init] => command service");
 }
@@ -265,7 +246,6 @@ void Irohad::run() {
       std::make_unique<ServerRunner>(ip + ":" + std::to_string(torii_port_));
 
   // Initializing internal server
-  grpc::ServerBuilder builder;
   int port = 0;
   builder.AddListeningPort(ip + ":" + std::to_string(internal_port_),
                            grpc::InsecureServerCredentials(),
@@ -277,13 +257,10 @@ void Irohad::run() {
   // Run internal server
   internal_server = builder.BuildAndStart();
   // Run torii server
-  server_thread = std::thread([this] {
-    torii_server->append(std::move(command_service))
-        .append(std::move(query_service))
-        .run();
-  });
+  torii_server->append(std::move(command_service))
+      .append(std::move(query_service))
+      .run();
+
   log_->info("===> iroha initialized");
-  // Wait until servers shutdown
   torii_server->waitForServersReady();
-  internal_server->Wait();
 }
