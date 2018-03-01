@@ -2,20 +2,20 @@
 image: hyperledger/iroha:latest
 manifests:
   -
-    image: hyperledger/iroha-docker:x86_64
+    image: hyperledger/iroha:x86_64
     platform:
       architecture: amd64
       os: linux
       features:
         - sse
   -
-    image: hyperledger/iroha-docker:armv7l
+    image: hyperledger/iroha:armv7l
     platform:
       architecture: arm
       os: linux
       variant: v7
   -
-    image: hyperledger/iroha-docker:aarch64
+    image: hyperledger/iroha:aarch64
     platform:
       architecture: arm64
       os: linux
@@ -24,20 +24,20 @@ manifests:
 image: hyperledger/iroha:develop
 manifests:
   -
-    image: hyperledger/iroha-docker-develop:x86_64
+    image: hyperledger/iroha:x86_64-develop
     platform:
       architecture: amd64
       os: linux
       features:
         - sse
   -
-    image: hyperledger/iroha-docker-develop:armv7l
+    image: hyperledger/iroha:armv7l-develop
     platform:
       architecture: arm
       os: linux
       variant: v7
   -
-    image: hyperledger/iroha-docker-develop:aarch64
+    image: hyperledger/iroha:aarch64-develop
     platform:
       architecture: arm64
       os: linux

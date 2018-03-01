@@ -12,7 +12,7 @@ def doReleaseBuild() {
 	// speeds up consequent image builds as we simply tag them 
 	sh "docker pull ${DOCKER_BASE_IMAGE_DEVELOP}"
 	if (env.BRANCH_NAME == 'master') {
-	    iC = docker.build("${DOCKER_BASE_IMAGE_DEVELOP}:${GIT_COMMIT}-${BUILD_NUMBER}", "-f /tmp/${env.GIT_COMMIT}/Dockerfile /tmp/${env.GIT_COMMIT} --build-arg PARALLELISM=${PARALLELISM}")
+	    iC = docker.build("hyperledger/iroha:${GIT_COMMIT}-${BUILD_NUMBER}", "-f /tmp/${env.GIT_COMMIT}/Dockerfile /tmp/${env.GIT_COMMIT} --build-arg PARALLELISM=${PARALLELISM}")
 	}
 
 	sh "mkdir /tmp/${env.GIT_COMMIT}-${BUILD_NUMBER}"
@@ -51,7 +51,7 @@ def doReleaseBuild() {
 	// TODO: iroha.deb package is now in the /tmp/${GIT_COMMIT}-${BUILD_NUMBER} directory. Think on how to add it to the release Dockerfile
 	sh "docker pull ${DOCKER_BASE_IMAGE_RELEASE}"
 	if (env.BRANCH_NAME == 'master') {
-	    iC = docker.build("${DOCKER_BASE_IMAGE_RELEASE}:${GIT_COMMIT}-${BUILD_NUMBER}", "-f /tmp/${env.GIT_COMMIT}/Dockerfile /tmp/${env.GIT_COMMIT} --build-arg PARALLELISM=${PARALLELISM}")
+	    iC = docker.build("hyperledger/iroha:${GIT_COMMIT}-${BUILD_NUMBER}", "-f /tmp/${env.GIT_COMMIT}/Dockerfile /tmp/${env.GIT_COMMIT} --build-arg PARALLELISM=${PARALLELISM}")
 	    docker.withRegistry('https://registry.hub.docker.com', 'docker-hub-credentials'){
         	iC.push("${platform}")
         }
