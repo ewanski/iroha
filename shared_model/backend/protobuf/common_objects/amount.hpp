@@ -37,7 +37,8 @@ namespace shared_model {
      * @return uint256_t representation of proto object
      */
     template <typename AmountType>
-    uint256_t convertToUInt256(const AmountType &amount) noexcept {
+    boost::multiprecision::uint256_t convertToUInt256(const AmountType &amount) noexcept {
+      using boost::multiprecision::uint256_t;
       constexpr auto offset = 64u;
       uint256_t result;
       result |= uint256_t{amount.first()} << offset * 3;
@@ -54,7 +55,7 @@ namespace shared_model {
      */
     template <typename ValueType>
     void convertToProtoAmount(ValueType &value,
-                              const uint256_t &amount) noexcept {
+                              const boost::multiprecision::uint256_t &amount) noexcept {
       constexpr auto offset = 64u;
       value.set_first((amount >> offset * 3).template convert_to<uint64_t>());
       value.set_second((amount >> offset * 2).template convert_to<uint64_t>());
@@ -77,7 +78,7 @@ namespace shared_model {
 
       Amount(Amount &&o) noexcept : Amount(std::move(o.proto_)) {}
 
-      const uint256_t &intValue() const override {
+      const boost::multiprecision::uint256_t &intValue() const override {
         return *multiprecision_repr_;
       }
 
