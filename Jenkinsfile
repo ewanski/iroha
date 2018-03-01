@@ -69,7 +69,7 @@ pipeline {
             parallel {
                 stage ('Linux') {
                     when { expression { return params.Linux } }
-                    agent { label 'linux && x86_64' }
+                    agent { label 'x86_64' }
                     steps {
                         script {
                             debugBuild = load ".jenkinsci/debug-build.groovy"
