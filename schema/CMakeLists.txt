@@ -43,13 +43,11 @@ add_library(schema
     proposal.pb.cc
     )
 
-
-
 target_link_libraries(schema
     protobuf
     )
 target_include_directories(schema PUBLIC
-    .
+    ${CMAKE_CURRENT_SOURCE_DIR}
     )
 
 if (IROHA_ROOT_PROJECT)

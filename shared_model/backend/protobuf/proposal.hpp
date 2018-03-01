@@ -33,10 +33,9 @@
 namespace shared_model {
 
   namespace proto {
-    class Proposal final
-        : public CopyableProto<interface::Proposal,
-                               iroha::protocol::Proposal,
-                               Proposal> {
+    class Proposal final : public CopyableProto<interface::Proposal,
+                                                iroha::protocol::Proposal,
+                                                Proposal> {
       template <class T>
       using w = detail::PolymorphicWrapper<T>;
       using TransactionContainer = std::vector<w<interface::Transaction>>;
@@ -44,17 +43,7 @@ namespace shared_model {
      public:
       template <class ProposalType>
       explicit Proposal(ProposalType &&proposal)
-          : CopyableProto(std::forward<ProposalType>(proposal)),
-            transactions_([this] {
-              return boost::accumulate(
-                  proto_->transactions(),
-                  TransactionContainer{},
-                  [](auto &&vec, const auto &tx) {
-                    vec.emplace_back(new proto::Transaction(tx));
-                    return std::forward<decltype(vec)>(vec);
-                  });
-            }),
-            blob_([this] { return makeBlob(*proto_); }) {}
+          : CopyableProto(std::forward<ProposalType>(proposal)) {}
 
       Proposal(const Proposal &o) : Proposal(o.proto_) {}
 
@@ -72,7 +61,7 @@ namespace shared_model {
         return proto_->height();
       }
 
-      const BlobType &blob() const override {
+      const interface::types::BlobType &blob() const override {
         return *blob_;
       }
 
@@ -81,8 +70,17 @@ namespace shared_model {
       template <typename T>
       using Lazy = detail::LazyInitializer<T>;
 
-      const Lazy<TransactionContainer> transactions_;
-      const Lazy<BlobType> blob_;
+      const Lazy<TransactionContainer> transactions_{[this] {
+        return boost::accumulate(proto_->transactions(),
+                                 TransactionContainer{},
+                                 [](auto &&vec, const auto &tx) {
+                                   vec.emplace_back(new proto::Transaction(tx));
+                                   return std::forward<decltype(vec)>(vec);
+                                 });
+      }};
+
+      const Lazy<interface::types::BlobType> blob_{
+          [this] { return makeBlob(*proto_); }};
     };
   }  // namespace proto
 }  // namespace shared_model
