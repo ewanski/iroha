@@ -22,9 +22,9 @@ jobs:
       - run: echo $(eval echo "$IROHA_VERSION")
       - restore_cache:
           keys:
-            - build-linux-debug-{{ arch }}-{{ .Branch }}-
-            - build-linux-debug-{{ arch }}-
-            - build-linux-debug-
+            - v1-build-linux-debug-{{ arch }}-{{ .Branch }}-
+            - v1-build-linux-debug-{{ arch }}-
+            - v1-build-linux-debug-
           paths:
             - ~/.ccache
 
@@ -65,7 +65,7 @@ jobs:
           name: codecov.io
           command: bash <(curl -s https://codecov.io/bash) -f $IROHA_BUILD/reports/gcovr.xml || echo "Codecov did not collect coverage reports"
       - save_cache:
-          key: build-linux-debug-{{ arch }}-{{ .Branch }}-{{ epoch }}
+          key: v1-build-linux-debug-{{ arch }}-{{ .Branch }}-{{ epoch }}
           paths:
             - ~/.ccache
           when: always
@@ -86,9 +86,9 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - build-linux-release-{{ arch }}-{{ .Branch }}-
-            - build-linux-release-{{ arch }}-
-            - build-linux-release-
+            - v1-build-linux-release-{{ arch }}-{{ .Branch }}-
+            - v1-build-linux-release-{{ arch }}-
+            - v1-build-linux-release-
           paths:
             - ~/.ccache
       - run:
@@ -119,7 +119,7 @@ jobs:
             cmake --build $IROHA_BUILD --target package -- -j$(nproc --all)
       - run: ccache --show-stats
       - save_cache:
-          key: build-linux-release-{{ arch }}-{{ .Branch }}-{{ epoch }}
+          key: v1-build-linux-release-{{ arch }}-{{ .Branch }}-{{ epoch }}
           paths:
             - ~/.ccache
           when: always
@@ -265,29 +265,29 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - brew-
+            - v1-brew-
           paths:
             - ~/Library/Caches/Homebrew
       - run:
           name: install dev dependencies
           command: brew install cmake boost postgres grpc autoconf automake libtool ccache || true
       - save_cache:
-          key: brew-{{ epoch }}
+          key: v1-brew-{{ epoch }}
           paths:
             - ~/Library/Caches/Homebrew
           when: always
       - restore_cache:
           keys:
-            - build-mac-release-{{ arch }}-{{ .Branch }}-
-            - build-mac-release-{{ arch }}-
-            - build-mac-release-
+            - v1-build-mac-release-{{ arch }}-{{ .Branch }}-
+            - v1-build-mac-release-{{ arch }}-
+            - v1-build-mac-release-
           paths:
             - ~/.ccache
       - restore_cache:
           keys:
-            - mac-external-{{ arch }}-{{ .Branch }}-
-            - mac-external-{{ arch }}-
-            - mac-external-
+            - v1-mac-external-{{ arch }}-{{ .Branch }}-
+            - v1-mac-external-{{ arch }}-
+            - v1-mac-external-
           paths:
             - external
       - run:
@@ -315,12 +315,12 @@ jobs:
             cmake --build build --target package -- -j$(sysctl -n hw.ncpu)
       - run: ccache --show-stats
       - save_cache:
-          key: build-mac-release-{{ arch }}-{{ .Branch }}-{{ epoch }}
+          key: v1-build-mac-release-{{ arch }}-{{ .Branch }}-{{ epoch }}
           paths:
             - ~/.ccache
           when: always
       - save_cache:
-          key: mac-external-{{ arch }}-{{ .Branch }}-{{ epoch }}
+          key: v1-mac-external-{{ arch }}-{{ .Branch }}-{{ epoch }}
           paths:
             - external
           when: always
