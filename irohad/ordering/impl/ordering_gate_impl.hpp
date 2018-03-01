@@ -18,6 +18,9 @@
 #ifndef IROHA_ORDERING_GATE_IMPL_HPP
 #define IROHA_ORDERING_GATE_IMPL_HPP
 
+#include <tbb/concurrent_queue.h>
+#include <atomic>
+
 #include "model/converters/pb_transaction_factory.hpp"
 #include "network/impl/async_grpc_client.hpp"
 #include "network/ordering_gate.hpp"
@@ -45,11 +48,28 @@ namespace iroha {
 
       rxcpp::observable<model::Proposal> on_proposal() override;
 
+      bool setPcs(
+          std::weak_ptr<iroha::network::PeerCommunicationService> psc) override;
+
       void onProposal(model::Proposal proposal) override;
 
+      ~OrderingGateImpl() override;
+
      private:
+      /**
+       * Try to push proposal for next consensus round
+       */
+      void tryNextRound();
+
       rxcpp::subjects::subject<model::Proposal> proposals_;
       std::shared_ptr<iroha::network::OrderingGateTransport> transport_;
+
+      /// invariant: true for able to pushing next proposal
+      std::atomic_bool unlock_next_{true};
+
+      /// queue with all proposals received from ordering service
+      tbb::concurrent_queue<std::shared_ptr<model::Proposal>> proposal_queue_;
+
       logger::Logger log_;
     };
   }  // namespace ordering

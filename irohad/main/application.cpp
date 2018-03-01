@@ -113,17 +113,13 @@ void Irohad::initStorage() {
       [&](expected::Value<std::shared_ptr<ametsuchi::StorageImpl>> &_storage) {
         storage = _storage.value;
       },
-      [&](expected::Error<std::string> &error) {
-        log_->error(error.error);
-      });
+      [&](expected::Error<std::string> &error) { log_->error(error.error); });
 
   PostgresOrderingServicePersistentState::create(pg_conn_).match(
       [&](expected::Value<
           std::shared_ptr<ametsuchi::PostgresOrderingServicePersistentState>>
               &_storage) { ordering_service_storage_ = _storage.value; },
-      [&](expected::Error<std::string> &error) {
-        log_->error(error.error);
-      });
+      [&](expected::Error<std::string> &error) { log_->error(error.error); });
 
   log_->info("[Init] => storage", logger::logBool(storage));
 }
@@ -226,6 +222,9 @@ void Irohad::initPeerCommunicationService() {
 
   pcs->on_commit().subscribe(
       [this](auto) { log_->info("~~~~~~~~~| COMMIT =^._.^= |~~~~~~~~~ "); });
+
+  // complete initialization of ordering gate
+  ordering_gate->setPcs(pcs);
 
   log_->info("[Init] => pcs");
 }
