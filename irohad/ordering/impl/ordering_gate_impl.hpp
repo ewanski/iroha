@@ -70,6 +70,9 @@ namespace iroha {
       /// queue with all proposals received from ordering service
       tbb::concurrent_queue<std::shared_ptr<model::Proposal>> proposal_queue_;
 
+      /// subscription of pcs::on_commit
+      rxcpp::composite_subscription psc_subscriber_;
+
       logger::Logger log_;
     };
   }  // namespace ordering

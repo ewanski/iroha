@@ -41,7 +41,9 @@ namespace iroha {
 
     bool OrderingGateImpl::setPcs(
         std::weak_ptr<iroha::network::PeerCommunicationService> psc) {
-      psc.lock()->on_commit().subscribe([this](auto) {
+      if (psc.expired())
+        return false;
+      psc_subscriber_ = psc.lock()->on_commit().subscribe([this](auto) {
         unlock_next_.store(true);
         tryNextRound();
 
@@ -64,7 +66,7 @@ namespace iroha {
     }
 
     OrderingGateImpl::~OrderingGateImpl() {
-      // TODO unsubscribe from psc here
+      psc_subscriber_.unsubscribe();
     }
 
   }  // namespace ordering
